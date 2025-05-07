@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<main class="container">
+    <h1 class="page-title">Configurações</h1>
+    
+    <div class="cards-container">
+        <div class="card">
+            <h2>Contas Bancárias</h2>
+            <p>Gerencie suas contas bancárias cadastradas.</p>
+            <a href="/configuracoes/contas" class="btn">Acessar</a>
+        </div>
+        <div class="card">
+            <h2>Cartões de Crédito</h2>
+            <p>Gerencie seus cartões de crédito cadastrados.</p>
+            <a href="/configuracoes/cartoes" class="btn">Acessar</a>
+        </div>
+        <div class="card">
+            <h2>Categorias de Transações</h2>
+            <p>Gerencie as categorias para suas transações financeiras.</p>
+            <a href="/configuracoes/categorias" class="btn">Acessar</a>
+        </div>
+    </div>
+</main>
+{% endblock content %}

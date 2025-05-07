@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreador de Finanças</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="logo">Finanças</a>
+                <ul class="nav-links">
+                    {% if not session['user_id'] %}
+                        <li><a href="/login">Entrar</a></li>
+                        <li><a href="/register">Registrar</a></li>
+                        <li><a href="/sobre">Sobre</a></li>
+                        <li><a href="/contato">Contato</a></li>
+                    {% elif session['user_id'] %}
+                        <li class="user-info">
+                            <span class="user-name">Olá, {{ session['username'] }}</span>
+                        </li>
+                        <li><a href="/dashboard">Dashboard</a></li>
+                        <li><a href="/transacoes">Transações</a></li>
+                        <li><a href="/relatorios">Relatórios</a></li>
+                        <li><a href="/configuracoes">Configurações</a></li>
+                        <li><a href="/logout">Sair</a></li>  
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="container">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </main>
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Rastreador de Finanças. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>
