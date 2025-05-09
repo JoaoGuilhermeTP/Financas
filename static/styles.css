@@ -87,55 +87,6 @@ header {
     display: none;
 }
 
-/* Estilo para dispositivos móveis */
-@media (max-width: 768px) {
-    .menu-toggle {
-        display: block;
-    }
-
-    .nav-links {
-        display: none;
-        flex-direction: column;
-        gap: 1rem;
-        background-color: #4CAF50;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        padding: 1rem;
-        border-radius: 0 0 8px 8px;
-    }
-
-    .nav-links.show {
-        display: flex;
-    }
-
-    .nav-links li {
-        text-align: center;
-    }
-}
-
-/* Estilo para telas grandes */
-@media (min-width: 769px) {
-    .navbar .menu-toggle {
-        display: none; /* Esconde o botão de alternância em telas grandes */
-    }
-
-    .navbar .nav-links {
-        position: static;
-        flex-direction: row;
-        height: auto;
-        width: auto;
-        background-color: transparent;
-        box-shadow: none;
-        padding: 0;
-        gap: 1rem;
-    }
-
-    .navbar .nav-links.show {
-        right: auto;
-    }
-}
 
 /* Main content */
 main .container {
@@ -276,6 +227,15 @@ main .container {
 
 .card .btn:hover {
     background-color: #45a049;
+}
+
+/* Dashboard vertical stacking */
+.dashboard-row {
+    max-width: 700px;
+    margin: 1.5rem auto;
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
 }
 
 /* Footer */

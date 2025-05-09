@@ -2,52 +2,37 @@
 
 {% block content %}
 <main class="container">
-    <h1 class="page-title">Configurar Contas Bancárias</h1>
-
-    <!-- Tabela de contas -->
+    <h1 class="page-title">Gerenciar Categorias</h1>
     <div class="table-container">
-        <h2>Contas Bancárias</h2>
+        <h2>Minhas Categorias</h2>
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>Número da Conta</th>
-                    <th>Banco</th>
-                    <th>Saldo</th>
+                    <th>Nome</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Linha para adicionar nova conta -->
+                <!-- Linha para adicionar nova categoria -->
                 <tr>
-                    <form method="POST" action="/configuracoes/contas/adicionar">
+                    <form method="POST" action="/configuracoes/categorias/adicionar">
                         <td>
-                            <input type="text" name="account_number" placeholder="Número da conta bancária" required style="width: 100%; padding: 0.3rem;">
+                            <input type="text" name="category_name" placeholder="Nome da categoria" required style="width: 100%; padding: 0.3rem;">
                         </td>
                         <td>
-                            <select name="bank_id" required style="width: 100%; padding: 0.3rem;">
-                                <option value="" disabled selected>Selecione um banco</option>
-                                {% for bank in banks %}
-                                    <option value="{{ bank.id }}">{{ bank.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="balance_cents" placeholder="Saldo inicial (centavos)" required style="width: 100%; padding: 0.3rem;">
-                        </td>
-                        <td>
-                            <button type="submit" class="btn">Salvar</button>
+                            <button type="submit" class="btn">Adicionar</button>
                         </td>
                     </form>
                 </tr>
                 <!-- Fim da linha de adição -->
-                {% for account in bank_accounts %}
+                {% for category in categories %}
                 <tr>
-                    <td>{{ account.account_number }}</td>
-                    <td>{{ account.bank.name }}</td>
-                    <td>{{ account.balance_cents }}</td>
+                    <td>{{ category.name }}</td>
                     <td>
-                        <a href="/configuracoes/contas/editar/{{ account.id }}" class="btn edit-btn">Editar</a>
-                        <a href="/configuracoes/contas/excluir/{{ account.id }}" class="btn delete-btn">Excluir</a>
+                        <a href="/configuracoes/categorias/editar/{{ category.id }}" class="btn edit-btn">Editar</a>
+                        <form method="POST" action="/configuracoes/categorias/excluir/{{ category.id }}" style="display:inline;">
+                            <button type="submit" class="btn delete-btn" onclick="return confirm('Tem certeza que deseja excluir esta categoria?');">Excluir</button>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}
@@ -56,13 +41,10 @@
     </div>
 </main>
 
-
 <style>
-    /* Estilo para tabelas */
     .table-container {
         margin-top: 2rem;
     }
-
     .styled-table {
         width: 100%;
         border-collapse: collapse;
@@ -73,27 +55,22 @@
         overflow: hidden;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-
     .styled-table thead tr {
         background-color: #4CAF50;
         color: white;
         text-align: left;
         font-weight: bold;
     }
-
     .styled-table th, .styled-table td {
         padding: 1rem;
         border-bottom: 1px solid #ddd;
     }
-
     .styled-table tbody tr:nth-of-type(even) {
         background-color: #f9f9f9;
     }
-
     .styled-table tbody tr:hover {
         background-color: #f1f1f1;
     }
-
     .styled-table .btn {
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
@@ -102,16 +79,15 @@
         color: white;
         background-color: #4CAF50;
         transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
     }
-
     .styled-table .btn:hover {
         background-color: #45a049;
     }
-
     .styled-table .delete-btn {
         background-color: #e74c3c;
     }
-
     .styled-table .delete-btn:hover {
         background-color: #c0392b;
     }

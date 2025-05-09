@@ -2,26 +2,27 @@
 
 {% block content %}
 <main class="container">
-    <h1 class="page-title">Configurar Contas Bancárias</h1>
+    <h1 class="page-title">Configurar Cartões de Crédito</h1>
 
     <!-- Tabela de contas -->
     <div class="table-container">
-        <h2>Contas Bancárias</h2>
+        <h2>Meus Cartões de Crédito</h2>
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>Número da Conta</th>
+                    <th>Nome</th>
                     <th>Banco</th>
-                    <th>Saldo</th>
+                    <th>Em uso</th>
+                    <th>Limite</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Linha para adicionar nova conta -->
+                <!-- Linha para adicionar novo cartão -->
                 <tr>
-                    <form method="POST" action="/configuracoes/contas/adicionar">
+                    <form method="POST" action="/configuracoes/cartoes/adicionar">
                         <td>
-                            <input type="text" name="account_number" placeholder="Número da conta bancária" required style="width: 100%; padding: 0.3rem;">
+                            <input type="text" name="credit_card_name" placeholder="Nome do cartão" required style="width: 100%; padding: 0.3rem;">
                         </td>
                         <td>
                             <select name="bank_id" required style="width: 100%; padding: 0.3rem;">
@@ -35,19 +36,23 @@
                             <input type="number" name="balance_cents" placeholder="Saldo inicial (centavos)" required style="width: 100%; padding: 0.3rem;">
                         </td>
                         <td>
+                            <input type="number" name="limit" placeholder="Limite do cartão" required style="width: 100%; padding: 0.3rem;">
+                        </td>
+                        <td>
                             <button type="submit" class="btn">Salvar</button>
                         </td>
                     </form>
                 </tr>
                 <!-- Fim da linha de adição -->
-                {% for account in bank_accounts %}
+                {% for credit_card in credit_cards %}
                 <tr>
-                    <td>{{ account.account_number }}</td>
-                    <td>{{ account.bank.name }}</td>
-                    <td>{{ account.balance_cents }}</td>
+                    <td>{{ credit_card.name }}</td>
+                    <td>{{ credit_card.bank.name }}</td>
+                    <td>{{ credit_card.balance }}</td>
+                    <td>{{ credit_card.limit }}</td>
                     <td>
-                        <a href="/configuracoes/contas/editar/{{ account.id }}" class="btn edit-btn">Editar</a>
-                        <a href="/configuracoes/contas/excluir/{{ account.id }}" class="btn delete-btn">Excluir</a>
+                        <a href="/configuracoes/cartoes/editar/{{ credit_card.id }}" class="btn edit-btn">Editar</a>
+                        <a href="/configuracoes/cartoes/excluir/{{ credit_card.id }}" class="btn delete-btn">Excluir</a>
                     </td>
                 </tr>
                 {% endfor %}

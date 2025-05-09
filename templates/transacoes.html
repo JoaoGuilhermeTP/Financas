@@ -1,5 +1,356 @@
 {% extends "layout.html" %}
 
 {% block content %}
-TRANSAÇÕES
-{% endblock content %}     
+<main class="container">
+    <h1 class="page-title">Minhas Transações</h1>
+
+    <!-- Action bar for add/filter/clear, now always visible and styled -->
+    <div id="form-action-bar" class="form-action-bar permanent-action-bar">
+        <button type="submit" class="btn" name="action" value="add" form="add-or-filter-form">
+            <span class="material-icons" style="vertical-align: middle; font-size: 1.1em;">add_circle</span> Adicionar
+        </button>
+        <button type="submit" class="btn add-btn" name="action" value="filter" form="add-or-filter-form" formmethod="get" formaction="/transacoes">
+            <span class="material-icons" style="vertical-align: middle; font-size: 1.1em;">filter_list</span> Filtrar
+        </button>
+        <a href="/transacoes" class="btn clear-btn">
+            <span class="material-icons" style="vertical-align: middle; font-size: 1.1em;">clear</span> Limpar
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Conta Bancária</th>
+                    <th>Categoria</th>
+                </tr>
+            </thead>
+            {% set page = request.args.get('page', 1) | int %}
+            {% set per_page = 50 %}
+            {% set total = transactions|length %}
+            {% set total_pages = (total // per_page) + (1 if total % per_page > 0 else 0) %}
+            {% set start = (page - 1) * per_page %}
+            {% set end = start + per_page %}
+
+            <tbody>
+                <!-- Linha para adicionar nova transação e filtrar -->
+                <tr id="add-or-filter-row">
+                    <form method="POST" action="/transacoes/adicionar" id="add-or-filter-form">
+                        <td><input type="text" name="description" placeholder="Descrição" style="width: 100%; padding: 0.3rem;" value="{{ request.args.get('description', '') }}"></td>
+                        <td><input type="number" name="amount" placeholder="Valor (centavos)" style="width: 100%; padding: 0.3rem;" value="{{ request.args.get('amount', '') }}"></td>
+                        <td>
+                            <select name="type" style="width: 100%; padding: 0.3rem;">
+                                <option value="">Tipo</option>
+                                <option value="Income" {% if request.args.get('type') == 'Income' %}selected{% endif %}>Receita</option>
+                                <option value="Expense" {% if request.args.get('type') == 'Expense' %}selected{% endif %}>Despesa</option>
+                            </select>
+                        </td>
+                        <td><input type="date" name="date" value="{{ request.args.get('date', current_date) }}" style="width: 100%; padding: 0.3rem;"></td>
+                        <td>
+                            <select name="bank_account_id" style="width: 100%; padding: 0.3rem;">
+                                <option value="">Selecione a conta</option>
+                                {% for account in bank_accounts %}
+                                    <option value="{{ account.id }}" {% if request.args.get('bank_account_id') == account.id|string %}selected{% endif %}>{{ account.account_number }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="category_id" style="width: 100%; padding: 0.3rem;">
+                                <option value="">Nenhuma</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if request.args.get('category_id') == category.id|string %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </form>
+                </tr>
+                <!-- Fim da linha de adição/filtro -->
+                {% for transaction in transactions[start:end] %}
+                <tr class="transaction-row" tabindex="0">
+                    <td>{{ transaction.description }}</td>
+                    <td>{% if transaction.type == 'Expense' %}-{% endif %}R$ {{ '%.2f' % (transaction.amount / 100) }}</td>
+                    <td>{{ 'Receita' if transaction.type == 'Income' else 'Despesa' }}</td>
+                    <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if transaction.bank_account %}
+                            {{ transaction.bank_account.account_number }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ transaction.category.name if transaction.category else '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" style="text-align:center;">Nenhuma transação encontrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination controls -->
+    <div class="pagination" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem;">
+        {% if page > 1 %}
+            <a href="?page={{ page - 1 }}" class="btn">Anterior</a>
+        {% endif %}
+        <span style="align-self: center;">Página {{ page }} de {{ total_pages }}</span>
+        {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}" class="btn">Próxima</a>
+        {% endif %}
+    </div>
+
+    <!-- Modal para adicionar transação -->
+    <div id="add-transaction-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('add-transaction-modal').style.display='none'">&times;</span>
+            <h2>Nova Transação</h2>
+            <form method="POST" action="/transacoes/adicionar" class="form">
+                <div class="form-group">
+                    <label for="description">Descrição</label>
+                    <input type="text" id="description" name="description" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Valor (em centavos)</label>
+                    <input type="number" id="amount" name="amount" required>
+                </div>
+                <div class="form-group">
+                    <label for="type">Tipo</label>
+                    <select id="type" name="type" required>
+                        <option value="Income">Receita</option>
+                        <option value="Expense">Despesa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="date">Data</label>
+                    <input type="date" id="date" name="date" value="{{ current_date }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="bank_account_id">Conta Bancária</label>
+                    <select id="bank_account_id" name="bank_account_id" required>
+                        <option value="">Selecione a conta</option>
+                        {% for account in bank_accounts %}
+                            <option value="{{ account.id }}">{{ account.account_number }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="category_id">Categoria</label>
+                    <select id="category_id" name="category_id">
+                        <option value="">Nenhuma</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn">Adicionar</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<style>
+    .table-container {
+        margin-top: 2rem;
+    }
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 1rem;
+        text-align: left;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .styled-table thead tr {
+        background-color: #4CAF50;
+        color: white;
+        text-align: left;
+        font-weight: bold;
+    }
+    .styled-table th, .styled-table td {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #ddd;
+    }
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f9f9f9;
+    }
+    .styled-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+    .styled-table .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+        background-color: #4CAF50;
+        transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .styled-table .btn:hover {
+        background-color: #45a049;
+    }
+    .styled-table .delete-btn {
+        background-color: #e74c3c;
+    }
+    .styled-table .delete-btn:hover {
+        background-color: #c0392b;
+    }
+    .actions-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .filter-form {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .search-input, .filter-select {
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+    .add-btn {
+        background-color: #3498db;
+    }
+    .add-btn:hover {
+        background-color: #217dbb;
+    }
+    .clear-btn {
+        background-color: #e67e22;
+    }
+    .clear-btn:hover {
+        background-color: #d35400;
+    }
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0; 
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .close {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.3rem;
+        font-weight: 500;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    .form button.btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    .material-icons {
+        font-family: 'Material Icons';
+        font-style: normal;
+        font-weight: normal;
+        font-size: 1.2em;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        direction: ltr;
+        font-feature-settings: 'liga';
+        -webkit-font-feature-settings: 'liga';
+        -webkit-font-smoothing: antialiased;
+    }
+    .transaction-row.active-row {
+        background-color: #e8f5e9 !important;
+    }
+    .form-action-bar {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+        transition: opacity 0.2s;
+    }
+    .form-action-bar.permanent-action-bar {
+        display: flex !important;
+        justify-content: center;
+        gap: 1.2rem;
+        margin: 1.5rem 0 1rem 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        padding: 0.7rem 0.5rem;
+        border: 1px solid #e0e0e0;
+        max-width: 1200px;
+        width: 100%;
+        align-items: center;
+    }
+    .form-action-bar .btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 1rem;
+        font-weight: 500;
+        min-width: 120px;
+        justify-content: center;
+        box-shadow: none;
+        border: none;
+        border-radius: 4px;
+        padding: 0.6rem 1.2rem;
+        background-color: #4CAF50;
+        color: white;
+        transition: background 0.2s, color 0.2s;
+    }
+    .form-action-bar .btn:hover {
+        background-color: #45a049;
+        color: #fff;
+    }
+    .form-action-bar .add-btn {
+        background-color: #3498db;
+    }
+    .form-action-bar .add-btn:hover {
+        background-color: #217dbb;
+    }
+    .form-action-bar .clear-btn {
+        background-color: #e67e22;
+    }
+    .form-action-bar .clear-btn:hover {
+        background-color: #d35400;
+    }
+    .form-action-bar .btn .material-icons {
+        font-size: 1.2em;
+        margin-right: 0.2em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock content %}

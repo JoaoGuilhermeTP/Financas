@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<main class="container">
+    <h1 class="page-title">Editar Cartão de Crédito</h1>
+    <div class="form-container">
+        <form method="POST" action="/configuracoes/cartoes/editar/{{ credit_card.id }}" class="form">
+            <div class="form-group">
+                <label for="credit_card_name">Nome do Cartão</label>
+                <input type="text" id="credit_card_name" name="credit_card_name" value="{{ credit_card.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="bank_id">Banco</label>
+                <select id="bank_id" name="bank_id" required>
+                    {% for bank in banks %}
+                        <option value="{{ bank.id }}" {% if bank.id == credit_card.bank_id %}selected{% endif %}>{{ bank.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="balance_cents">Em uso</label>
+                <input type="number" id="balance_cents" name="balance_cents" value="{{ credit_card.balance }}" required>
+            </div>
+            <div class="form-group">
+                <label for="limit">Limite</label>
+                <input type="number" id="limit" name="limit" value="{{ credit_card.limit }}" required>
+            </div>
+            <button type="submit" class="btn">Salvar Alterações</button>
+        </form>
+    </div>
+</main>
+{% endblock content %}

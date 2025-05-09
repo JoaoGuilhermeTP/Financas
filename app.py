@@ -89,7 +89,71 @@ def dashboard():
 def transacoes():
     if not session['user_id']:
         return redirect(url_for('login'))
-    return render_template('transacoes.html')  # Página de transações
+    description_filter = request.args.get('description')
+    amount_filter = request.args.get('amount')
+    date_filter = request.args.get('date')
+    type_filter = request.args.get('type')
+    bank_account_filter = request.args.get('bank_account')
+    category_filter = request.args.get('category')
+    transactions = Transaction.query.filter_by(user_id=session['user_id'])
+    if description_filter:
+        transactions = transactions.filter(Transaction.description.contains(description_filter))
+    if amount_filter:
+        transactions = transactions.filter(Transaction.amount == amount_filter)
+    if date_filter:
+        from datetime import datetime
+        try:
+            date = datetime.strptime(date_filter, '%Y-%m-%d')
+            transactions = transactions.filter(Transaction.date == date)
+        except ValueError:
+            pass
+    if type_filter:
+        transactions = transactions.filter(Transaction.type == type_filter)
+    if bank_account_filter:
+        transactions = transactions.filter(Transaction.bank_account_id == bank_account_filter)
+    if category_filter:
+        transactions = transactions.filter(Transaction.category_id == category_filter)
+    transactions = transactions.all()
+    bank_accounts = BankAccount.query.filter_by(user_id=session['user_id']).all()
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('transacoes.html', transactions=transactions, bank_accounts=bank_accounts, categories=categories)  # Página de transações
+
+
+
+
+@app.route('/transacoes/adicionar', methods=['POST'])
+def adicionar_transacao():
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    description = request.form['description']
+    amount = int(request.form['amount'])
+    type_ = request.form['type']
+    date_str = request.form['date']
+    bank_account_id = request.form.get('bank_account_id')
+    category_id = request.form.get('category_id')
+
+    # Only allow transactions for bank accounts on this page
+    if not bank_account_id:
+        return redirect(url_for('transacoes'))
+
+    from datetime import datetime
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d')
+    except Exception:
+        date = datetime.utcnow()
+
+    new_transaction = Transaction(
+        description=description,
+        amount=amount,
+        type=type_,
+        date=date,
+        user_id=session['user_id'],
+        bank_account_id=bank_account_id,
+        category_id=category_id if category_id else None
+    )
+    db.session.add(new_transaction)
+    db.session.commit()
+    return redirect(url_for('transacoes'))
 
 
 
@@ -213,6 +277,110 @@ def excluir_conta(account_id):
     return redirect(url_for('configuracoes_contas'))
 
 
+
+
+@app.route('/configuracoes/cartoes', methods=['GET', 'POST'])
+def configuracoes_cartoes():
+    if not session['user_id']:
+        return redirect(url_for('login'))
+    banks = Bank.query.all() 
+    credit_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
+    return render_template('configurar_cartoes.html', banks=banks, credit_cards=credit_cards)
+
+
+
+
+@app.route('/configuracoes/cartoes/adicionar', methods=['GET', 'POST'])
+def adicionar_cartao():
+    if not session['user_id']:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        credit_card_name = request.form['credit_card_name']
+        bank_id = request.form['bank_id']
+        balance = request.form['balance_cents']
+        limit = request.form['limit']
+
+        # Cria uma nova conta e adiciona ao banco de dados
+        new_credit_card = CreditCard(name=credit_card_name, bank_id=bank_id, balance=balance, limit=limit, user_id=session['user_id'])
+        db.session.add(new_credit_card)
+        db.session.commit()
+    return redirect(url_for('configuracoes_cartoes'))
+
+
+
+
+@app.route('/configuracoes/cartoes/editar/<int:credit_card_id>', methods=['GET', 'POST'])
+def editar_cartao(credit_card_id):
+    if not session['user_id']:
+        return redirect(url_for('login'))
+    # Busca o cartão pelo ID e usuário
+    credit_card = CreditCard.query.filter_by(id=credit_card_id, user_id=session['user_id']).first()
+    if not credit_card:
+        return redirect(url_for('configuracoes_cartoes'))
+    if request.method == 'POST':
+        credit_card.name = request.form['credit_card_name']
+        credit_card.bank_id = request.form['bank_id']
+        credit_card.balance = request.form['balance_cents']
+        credit_card.limit = request.form['limit']
+        db.session.commit()
+        return redirect(url_for('configuracoes_cartoes'))
+    banks = Bank.query.all()
+    return render_template('editar_cartao.html', credit_card=credit_card, banks=banks)
+
+
+
+
+@app.route('/configuracoes/cartoes/excluir/<int:credit_card_id>', methods=['GET', 'POST'])
+def excluir_cartao(credit_card_id):
+    if not session['user_id']:
+        return redirect(url_for('login'))
+    credit_card = CreditCard.query.filter_by(id=credit_card_id, user_id=session['user_id']).first()
+    if not credit_card:
+        return redirect(url_for('configuracoes_cartoes'))
+    db.session.delete(credit_card)
+    db.session.commit()
+    return redirect(url_for('configuracoes_cartoes'))
+
+
+
+
+@app.route('/configuracoes/categorias', methods=['GET', 'POST'])
+def configuracoes_categorias():
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('configurar_categorias.html', categories=categories)
+
+@app.route('/configuracoes/categorias/adicionar', methods=['POST'])
+def adicionar_categoria():
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    name = request.form['category_name']
+    if name and not Category.query.filter_by(name=name).first():
+        new_category = Category(name=name)
+        db.session.add(new_category)
+        db.session.commit()
+    return redirect(url_for('configuracoes_categorias'))
+
+@app.route('/configuracoes/categorias/editar/<int:category_id>', methods=['GET', 'POST'])
+def editar_categoria(category_id):
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    category = Category.query.get_or_404(category_id)
+    if request.method == 'POST':
+        category.name = request.form['category_name']
+        db.session.commit()
+        return redirect(url_for('configuracoes_categorias'))
+    return render_template('editar_categoria.html', category=category)
+
+@app.route('/configuracoes/categorias/excluir/<int:category_id>', methods=['POST'])
+def excluir_categoria(category_id):
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    category = Category.query.get_or_404(category_id)
+    db.session.delete(category)
+    db.session.commit()
+    return redirect(url_for('configuracoes_categorias'))
 
 
 if __name__ == '__main__':

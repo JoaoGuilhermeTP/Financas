@@ -22,6 +22,7 @@ class Bank(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
 
     bank_accounts = db.relationship('BankAccount', backref='bank', lazy=True)
+    credit_cards = db.relationship('CreditCard', backref='bank', lazy=True)
 
     def __repr__(self):
         return f'<Bank {self.name}>'
@@ -34,6 +35,8 @@ class BankAccount(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    transactions = db.relationship('Transaction', backref='bank_account', lazy=True)
 
     def __repr__(self):
         return f'<BankAccount {self.account_number}>'

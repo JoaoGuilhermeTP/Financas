@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<main class="container">
+    <h1 class="page-title">Editar Categoria</h1>
+    <div class="form-container">
+        <form method="POST" action="/configuracoes/categorias/editar/{{ category.id }}" class="form">
+            <div class="form-group">
+                <label for="category_name">Nome da Categoria</label>
+                <input type="text" id="category_name" name="category_name" value="{{ category.name }}" required>
+            </div>
+            <button type="submit" class="btn">Salvar Alterações</button>
+        </form>
+    </div>
+</main>
+{% endblock content %}
