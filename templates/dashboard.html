@@ -22,6 +22,79 @@
   <canvas id="projectionLineChart" width="700" height="350"></canvas>
 </div>
 
+<div class="dashboard-section">
+  <h2>Resumo do Mês Atual</h2>
+  <div class="summary-cards">
+    <div class="summary-card income-card">
+      Receitas<br /><span>R$ {{ '%.2f'|format(income) }}</span>
+    </div>
+    <div class="summary-card expense-card">
+      Despesas<br /><span>R$ {{ '%.2f'|format(expenses|abs) }}</span>
+    </div>
+    <div class="summary-card net-card">
+      Saldo<br /><span>R$ {{ '%.2f'|format(net) }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-section">
+  <h2>Distribuição das Contas</h2>
+  <canvas id="accountPieChart" width="400" height="200"></canvas>
+</div>
+
+<div class="dashboard-section">
+  <h2>Gastos por Categoria (Mês Atual)</h2>
+  <canvas id="categoryPieChart" width="400" height="200"></canvas>
+</div>
+
+<div class="dashboard-section">
+  <h2>Transações Recentes</h2>
+  <table class="recent-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Descrição</th>
+        <th>Valor</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in recent_transactions %}
+      <tr>
+        <td>{{ t.date.strftime('%d/%m/%Y') }}</td>
+        <td>{{ t.description }}</td>
+        <td class="{{ 'income' if t.amount > 0 else 'expense' }}">R$ {{ '%.2f'|format(t.amount) }}</td>
+        <td>{{ t.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="dashboard-section">
+  <h2>Próximas Transações Previstas</h2>
+  <table class="recent-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Descrição</th>
+        <th>Valor</th>
+        <th>Conta</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in upcoming_transactions %}
+      <tr>
+        <td>{{ t.date.strftime('%d/%m/%Y') }}</td>
+        <td>{{ t.description }}</td>
+        <td class="{{ 'income' if t.amount > 0 else 'expense' }}">R$ {{ '%.2f'|format(t.amount) }}</td>
+        <td>{{ t.bank_account.account_name if t.bank_account else '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   const lineColors = [
@@ -92,6 +165,32 @@
           }
       }
   });
+  const accountPieLabels = {{ account_labels|tojson }};
+  const accountPieData = {{ account_distribution|tojson }};
+  new Chart(document.getElementById('accountPieChart').getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: accountPieLabels,
+      datasets: [{
+        data: accountPieData,
+        backgroundColor: lineColors,
+      }]
+    },
+    options: { plugins: { legend: { position: 'top' } } }
+  });
+  const categoryPieLabels = {{ category_labels|tojson }};
+  const categoryPieData = {{ category_values|tojson }};
+  new Chart(document.getElementById('categoryPieChart').getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: categoryPieLabels,
+      datasets: [{
+        data: categoryPieData,
+        backgroundColor: lineColors,
+      }]
+    },
+    options: { plugins: { legend: { position: 'top' } } }
+  });
 </script>
 <style>
   .dashboard-section {
@@ -121,6 +220,53 @@
     margin: 1rem 0;
     font-size: 1.2rem;
     text-align: right;
+  }
+  .summary-cards {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  .summary-card {
+    background: #f7f7f7;
+    border-radius: 8px;
+    padding: 1.2rem 2.2rem;
+    font-size: 1.1rem;
+    text-align: center;
+    box-shadow: 0 1px 4px #0001;
+    min-width: 120px;
+  }
+  .summary-card span {
+    font-size: 1.3rem;
+    font-weight: bold;
+    display: block;
+    margin-top: 0.5rem;
+  }
+  .income-card {
+    border-bottom: 4px solid #4CAF50;
+  }
+  .expense-card {
+    border-bottom: 4px solid #e74c3c;
+  }
+  .net-card {
+    border-bottom: 4px solid #2196F3;
+  }
+  .recent-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  .recent-table th,
+  .recent-table td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+  .recent-table .income {
+    color: #219150;
+  }
+  .recent-table .expense {
+    color: #d32f2f;
   }
 </style>
 {% endblock content %}

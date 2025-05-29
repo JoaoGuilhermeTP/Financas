@@ -90,7 +90,7 @@ def dashboard():
     # Projected balances for the next 12 months (including 'Previsto')
     today = datetime.today()
     months = [(today + relativedelta(months=i)).replace(day=1) for i in range(12)]
-    projections = defaultdict(list)  # {account_id: [balance_month_0, ..., balance_month_11]}
+    projections = defaultdict(list)
     for account in accounts:
         txs = [t for t in account.transactions]
         for i, month_start in enumerate(months):
@@ -105,9 +105,39 @@ def dashboard():
         }
         for account in accounts
     ]
-    # Always pass projection_labels and projection_data, even if empty
+
+    # Recent Transactions (last 5)
+    recent_transactions = Transaction.query.filter_by(user_id=session['user_id']).order_by(Transaction.date.desc()).limit(5).all()
+
+    # Top Categories Pie Chart (current month)
+    start_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    end_month = (start_month + relativedelta(months=1))
+    cat_agg = db.session.query(Category.name, db.func.sum(Transaction.amount)) \
+        .join(Transaction, Transaction.category_id == Category.id) \
+        .filter(Transaction.user_id == session['user_id'], Transaction.date >= start_month, Transaction.date < end_month, Transaction.amount < 0) \
+        .group_by(Category.name).all()
+    category_labels = [c[0] for c in cat_agg]
+    category_values = [float(abs(c[1])) for c in cat_agg]
+
+    # Monthly Summary Cards (current month)
+    income = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.user_id == session['user_id'], Transaction.date >= start_month, Transaction.date < end_month, Transaction.amount > 0).scalar() or 0.0
+    expenses = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.user_id == session['user_id'], Transaction.date >= start_month, Transaction.date < end_month, Transaction.amount < 0).scalar() or 0.0
+    net = float(income) + float(expenses)
+
+    # Upcoming Scheduled Transactions (Previsto, future date)
+    upcoming_transactions = Transaction.query.filter_by(user_id=session['user_id'], status='Previsto').filter(Transaction.date > today).order_by(Transaction.date).limit(5).all()
+
+    # Account Distribution Pie Chart
+    account_labels = [a.account_name for a in accounts]
+    account_distribution = [float(a.balance) for a in accounts]
+
     return render_template('dashboard.html', accounts=accounts, total_balance=total_balance,
-                           projection_labels=projection_labels, projection_data=projection_data)
+        projection_labels=projection_labels, projection_data=projection_data,
+        recent_transactions=recent_transactions,
+        category_labels=category_labels, category_values=category_values,
+        income=income, expenses=expenses, net=net,
+        upcoming_transactions=upcoming_transactions,
+        account_labels=account_labels, account_distribution=account_distribution)
 
 
 
