@@ -30,42 +30,48 @@ class Bank(db.Model):
 
 class BankAccount(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    account_number = db.Column(db.String(20), nullable=False, unique=True)
-    balance_cents = db.Column(db.Integer, nullable=False, default=0)
+    account_name = db.Column(db.String(20), nullable=False, unique=True)
+    balance = db.Column(db.Numeric(10, 2), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+    # Relationships
     transactions = db.relationship('Transaction', backref='bank_account', lazy=True)
 
     def __repr__(self):
-        return f'<BankAccount {self.account_number}>'
+        return f'<BankAccount {self.account_name}>'
 
 
 class CreditCard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    limit = db.Column(db.Float, nullable=False)
-    balance = db.Column(db.Integer, nullable=False, default=0)
+    limit = db.Column(db.Numeric(10, 2), nullable=False)
+    balance = db.Column(db.Numeric(10, 2), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    closing_date = db.Column(db.Integer, nullable=False)  # Day of the month when the statement closes
+    due_date = db.Column(db.Integer, nullable=False)  # Day of the month when payment is due
+
+    # Relationships
+    transactions = db.relationship('Transaction', backref='credit_card', lazy=True)
 
     def __repr__(self):
-        return f'<CreditCard {self.card_number}>'
+        return f'<CreditCard {self.name}>'
 
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(100), nullable=False)
-    amount = db.Column(db.Integer, nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
     date = db.Column(db.DateTime, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     bank_account_id = db.Column(db.Integer, db.ForeignKey('bank_account.id'), nullable=True)
     credit_card_id = db.Column(db.Integer, db.ForeignKey('credit_card.id'), nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
-    type = db.Column(db.String(10), nullable=False)  # "Income" or "Expense"
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status = db.Column(db.String(20), nullable=False, default='Confirmado')
 
 
     def __repr__(self):
@@ -75,7 +81,8 @@ class Transaction(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    transactions = db.relationship('Transaction', backref='category', lazy=True)
+    
+    transactions = db.relationship('Transaction', backref='category', lazy=True) # Example usage: transaction.category
 
     def __repr__(self):
         return f'<Category {self.name}>'

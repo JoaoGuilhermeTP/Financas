@@ -20,7 +20,7 @@ with app.app_context():
 
     for _ in range(NUM_TRANSACTIONS):
         description = 'teste'
-        amount = random.randint(500, 50000)  # 5.00 to 500.00 in cents
+        amount = random.randint(500, 50000) / 100  # Convert cents to decimal
         type_ = random.choice(["Income", "Expense"])
         date = datetime.now() - timedelta(days=random.randint(0, 365))
         user_id = USER_ID

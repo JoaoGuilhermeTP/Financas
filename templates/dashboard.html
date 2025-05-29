@@ -1,146 +1,126 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block content %}
+<div class="dashboard-section">
+  <h2>Saldos das Contas</h2>
+  <div class="accounts-list">
+    {% for account in accounts %}
+    <div class="account-item">
+      <span class="account-name">{{ account.account_name }}</span>
+      <span class="account-balance"
+        >R$ {{ '%.2f'|format(account.balance) }}</span
+      >
+    </div>
+    {% endfor %}
+  </div>
+  <div class="total-balance">
+    <strong>Total:</strong> R$ {{ '%.2f'|format(total_balance) }}
+  </div>
+  <canvas id="accountsBarChart" width="600" height="300"></canvas>
+</div>
 
-{% block content %}
-<main class="container">
-    <h1 class="page-title">Dashboard</h1>
-    <!-- Alerts/Reminders -->
-    <div class="card dashboard-row">
-        <h2>🔔 Alertas & Lembretes</h2>
-        <ul style="text-align:left; margin: 0 auto; max-width: 250px;">
-            <li>Conta corrente abaixo de R$ 100,00</li>
-            <li>Fatura do cartão vence em 3 dias</li>
-            <li>Orçamento de lazer excedido</li>
-        </ul>
-    </div>
-    <!-- Quick Actions -->
-    <div class="card dashboard-row" style="background: #e8f5e9; border-color: #b2dfdb; color: #388e3c;">
-        <h2>⚡ Ações Rápidas</h2>
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;">
-            <a href="/transacoes" class="btn">Adicionar Transação</a>
-            <a href="/configuracoes/contas" class="btn">Nova Conta</a>
-            <a href="/relatorios" class="btn">Ver Relatórios</a>
-            <a href="/configuracoes" class="btn">Nova Meta</a>
-        </div>
-    </div>
-    <!-- Account Balances -->
-    <div class="card dashboard-row">
-        <h2>Contas e Saldos</h2>
-        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <h3>Conta Corrente</h3>
-                <p>Saldo: <strong>R$ 2.350,00</strong></p>
-            </div>
-            <div>
-                <h3>Poupança</h3>
-                <p>Saldo: <strong>R$ 5.000,00</strong></p>
-            </div>
-            <div>
-                <h3>Cartão de Crédito</h3>
-                <p>Fatura Atual: <strong>R$ 1.200,00</strong></p>
-            </div>
-        </div>
-    </div>
-    <!-- Income vs Expenses -->
-    <div class="card dashboard-row">
-        <h2>Resumo: Receitas vs. Despesas</h2>
-        <div style="display: flex; justify-content: space-around; margin-bottom: 1rem;">
-            <div>
-                <span style="color: #388e3c; font-weight: bold;">Receitas</span>
-                <p style="font-size: 1.2rem;">R$ 4.000,00</p>
-            </div>
-            <div>
-                <span style="color: #d32f2f; font-weight: bold;">Despesas</span>
-                <p style="font-size: 1.2rem;">R$ 3.200,00</p>
-            </div>
-        </div>
-        <div style="width: 100%; height: 200px; background: #f4f4f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #bbb;">
-            [Gráfico de Pizza ou Barras Aqui]
-        </div>
-    </div>
-    <!-- Budget Overview -->
-    <div class="card dashboard-row">
-        <h2>Orçamento do Mês</h2>
-        <div style="margin-bottom: 1rem;">
-            <span>Alimentação</span>
-            <div style="background: #eee; border-radius: 4px; overflow: hidden; height: 18px;">
-                <div style="width: 80%; background: #4CAF50; height: 100%;"></div>
-            </div>
-            <small>R$ 800,00 de R$ 1.000,00</small>
-        </div>
-        <div style="margin-bottom: 1rem;">
-            <span>Transporte</span>
-            <div style="background: #eee; border-radius: 4px; overflow: hidden; height: 18px;">
-                <div style="width: 60%; background: #4CAF50; height: 100%;"></div>
-            </div>
-            <small>R$ 300,00 de R$ 500,00</small>
-        </div>
-        <div style="margin-bottom: 1rem;">
-            <span>Lazer</span>
-            <div style="background: #eee; border-radius: 4px; overflow: hidden; height: 18px;">
-                <div style="width: 110%; background: #d32f2f; height: 100%;"></div>
-            </div>
-            <small>R$ 550,00 de R$ 500,00</small>
-        </div>
-    </div>
-    <!-- Financial Goals -->
-    <div class="card dashboard-row">
-        <h2>Metas Financeiras</h2>
-        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <h3>Viagem</h3>
-                <div style="background: #eee; border-radius: 4px; overflow: hidden; height: 18px; margin-bottom: 0.5rem; width: 180px;">
-                    <div style="width: 50%; background: #4CAF50; height: 100%;"></div>
-                </div>
-                <small>R$ 2.500,00 de R$ 5.000,00</small>
-            </div>
-            <div>
-                <h3>Reserva de Emergência</h3>
-                <div style="background: #eee; border-radius: 4px; overflow: hidden; height: 18px; margin-bottom: 0.5rem; width: 180px;">
-                    <div style="width: 80%; background: #4CAF50; height: 100%;"></div>
-                </div>
-                <small>R$ 8.000,00 de R$ 10.000,00</small>
-            </div>
-        </div>
-    </div>
-    <!-- Recent Transactions -->
-    <div class="card dashboard-row">
-        <h2>Transações Recentes</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
-            <thead>
-                <tr style="background: #f4f4f9;">
-                    <th style="padding: 0.5rem; text-align: left;">Data</th>
-                    <th style="padding: 0.5rem; text-align: left;">Descrição</th>
-                    <th style="padding: 0.5rem; text-align: left;">Categoria</th>
-                    <th style="padding: 0.5rem; text-align: left;">Valor</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>08/05/2025</td>
-                    <td>Supermercado</td>
-                    <td>Alimentação</td>
-                    <td style="color: #d32f2f;">-R$ 150,00</td>
-                </tr>
-                <tr>
-                    <td>07/05/2025</td>
-                    <td>Salário</td>
-                    <td>Receita</td>
-                    <td style="color: #388e3c;">+R$ 4.000,00</td>
-                </tr>
-                <tr>
-                    <td>06/05/2025</td>
-                    <td>Uber</td>
-                    <td>Transporte</td>
-                    <td style="color: #d32f2f;">-R$ 35,00</td>
-                </tr>
-                <tr>
-                    <td>05/05/2025</td>
-                    <td>Cinema</td>
-                    <td>Lazer</td>
-                    <td style="color: #d32f2f;">-R$ 50,00</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</main>
+<div class="dashboard-section">
+  <h2>Projeção de Saldo por Conta (Próximos 12 meses)</h2>
+  <canvas id="projectionLineChart" width="700" height="350"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const lineColors = [
+      '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#E91E63', '#00BCD4', '#FF5722', '#607D8B', '#795548', '#8BC34A', '#FFC107', '#3F51B5'
+  ];
+  const accountNames = {{ accounts|map(attribute='account_name')|list|tojson }};
+  const accountBalances = {{ accounts|map(attribute='balance')|list|tojson }};
+  const barColors = accountNames.map((_, idx) => lineColors[idx % lineColors.length]);
+  new Chart(document.getElementById('accountsBarChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+          labels: accountNames,
+          datasets: [{
+              label: 'Saldo por Conta',
+              data: accountBalances,
+              backgroundColor: barColors,
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { display: false },
+              title: { display: false }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  ticks: {
+                      callback: function(value) {
+                          return 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                      }
+                  }
+              }
+          }
+      }
+  });
+  const projectionLabels = {{ projection_labels|tojson }};
+  const projectionData = {{ projection_data|tojson }};
+  const datasets = projectionData.map((acc, idx) => ({
+      label: acc.account_name,
+      data: acc.balances,
+      borderColor: lineColors[idx % lineColors.length],
+      backgroundColor: lineColors[idx % lineColors.length],
+      fill: false,
+      tension: 0.2
+  }));
+  new Chart(document.getElementById('projectionLineChart').getContext('2d'), {
+      type: 'line',
+      data: {
+          labels: projectionLabels,
+          datasets: datasets
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { position: 'top' },
+              title: { display: false }
+          },
+          scales: {
+              y: {
+                  beginAtZero: false,
+                  ticks: {
+                      callback: function(value) {
+                          return 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                      }
+                  }
+              }
+          }
+      }
+  });
+</script>
+<style>
+  .dashboard-section {
+    max-width: 700px;
+    margin: 2rem auto;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #0001;
+  }
+  .accounts-list {
+    margin-bottom: 1rem;
+  }
+  .account-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+  }
+  .account-name {
+    font-weight: 500;
+  }
+  .account-balance {
+    font-family: monospace;
+  }
+  .total-balance {
+    margin: 1rem 0;
+    font-size: 1.2rem;
+    text-align: right;
+  }
+</style>
 {% endblock content %}

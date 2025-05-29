@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<main class="container">
+    <h1 class="page-title">Editar Conta Bancária</h1>
+    <div class="form-container">
+        <form method="POST" action="/configuracoes/contas/editar/{{ account.id }}" class="form">
+            <div class="form-group">
+                <label for="account-name">Número da Conta</label>
+                <input type="text" id="account-name" name="account_name" value="{{ account.account_name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="bank-id">Banco</label>
+                <select id="bank-id" name="bank_id" required>
+                    {% for bank in banks %}
+                        <option value="{{ bank.id }}" {% if bank.id == account.bank_id %}selected{% endif %}>{{ bank.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="balance">Saldo</label>
+                <input type="text" id="balance" name="balance" value="{{ account.balance }}" required inputmode="numeric">
+            </div>
+            <button type="submit" class="btn">Salvar Alterações</button>
+        </form>
+    </div>
+</main>
+<script>
+function formatarMoeda(input) {
+    let raw = input.value;
+    let negativo = raw.startsWith('-');
+    let v = raw.replace(/[^\d]/g, "");
+    if (v.length === 0) {
+        input.value = negativo ? '-' : '';
+        return;
+    }
+    v = (parseInt(v, 10)/100).toFixed(2) + '';
+    v = v.replace('.', ',');
+    v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+    input.value = (negativo ? '-' : '') + v;
+}
+const balanceInput = document.getElementById('balance');
+if (balanceInput) {
+    balanceInput.addEventListener('input', function(e) {
+        if (this.value.indexOf('-') > 0) {
+            this.value = this.value.replace(/-/g, '');
+            this.value = '-' + this.value;
+        }
+        formatarMoeda(this);
+    });
+    balanceInput.addEventListener('keydown', function(e) {
+        if (this.value === '-0,00' && (e.key === 'Backspace' || e.keyCode === 8)) {
+            e.preventDefault();
+            this.value = '0,00';
+        }
+    });
+    balanceInput.form.addEventListener('submit', function(e) {
+        let raw = balanceInput.value.replace(/\./g, '').replace(',', '.');
+        if (raw.startsWith('-')) {
+            raw = '-' + raw.slice(1).replace(/-/g, '');
+        } else {
+            raw = raw.replace(/-/g, '');
+        }
+        balanceInput.value = parseFloat(raw).toFixed(2);
+    });
+}
+</script>
+{% endblock content %}

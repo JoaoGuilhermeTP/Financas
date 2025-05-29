@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="cards-container" style="margin-top: 3rem;">
+    <div class="card" style="min-width: 320px;">
+        <div style="font-size: 2.5rem; color: #4CAF50; margin-bottom: 1rem;">
+            <i class="fa fa-university" aria-hidden="true"></i>
+        </div>
+        <h2>Adicionar em Conta Corrente</h2>
+        <p>Lance uma nova transação diretamente em sua conta corrente.</p>
+        <a href="/transacoes/nova/conta" class="btn">Adicionar à Conta Corrente</a>
+    </div>
+    <div class="card" style="min-width: 320px;">
+        <div style="font-size: 2.5rem; color: #4CAF50; margin-bottom: 1rem;">
+            <i class="fa fa-credit-card" aria-hidden="true"></i>
+        </div>
+        <h2>Adicionar em Cartão de Crédito</h2>
+        <p>Registre uma nova transação em um de seus cartões de crédito.</p>
+        <a href="/transacoes/nova/cartao" class="btn">Adicionar ao Cartão de Crédito</a>
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock content %}

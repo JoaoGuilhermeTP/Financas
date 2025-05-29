@@ -1,0 +1,167 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<main class="container">
+    <h1 class="page-title">Configurar Contas Bancárias</h1>
+
+    <!-- Tabela de contas -->
+    <div class="table-container">
+        <h2>Contas Bancárias</h2>
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Número da Conta</th>
+                    <th>Banco</th>
+                    <th>Saldo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Linha para adicionar nova conta -->
+                <tr>
+                    <form method="POST" action="/configuracoes/contas/adicionar">
+                        <td>
+                            <input type="text" name="account_name" placeholder="Número da conta bancária" required style="width: 100%; padding: 0.3rem;">
+                        </td>
+                        <td>
+                            <select name="bank_id" required style="width: 100%; padding: 0.3rem;">
+                                <option value="" disabled selected>Selecione um banco</option>
+                                {% for bank in banks %}
+                                    <option value="{{ bank.id }}">{{ bank.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="balance_cents" id="balance_cents" placeholder="Saldo inicial" required style="width: 100%; padding: 0.3rem;" inputmode="numeric">
+                        </td>
+                        <td>
+                            <button type="submit" class="btn">Salvar</button>
+                        </td>
+                    </form>
+                </tr>
+                <!-- Fim da linha de adição -->
+                {% for account in bank_accounts %}
+                <tr>
+                    <td>{{ account.account_name }}</td>
+                    <td>{{ account.bank.name }}</td>
+                    <td>{{ account.balance }}</td>
+                    <td>
+                        <a href="/configuracoes/contas/editar/{{ account.id }}" class="btn edit-btn">Editar</a>
+                        <a href="/configuracoes/contas/excluir/{{ account.id }}" class="btn delete-btn">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+
+<style>
+    /* Estilo para tabelas */
+    .table-container {
+        margin-top: 2rem;
+    }
+
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 1rem;
+        text-align: left;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .styled-table thead tr {
+        background-color: #4CAF50;
+        color: white;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    .styled-table th, .styled-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f9f9f9;
+    }
+
+    .styled-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .styled-table .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+        background-color: #4CAF50;
+        transition: background-color 0.3s ease;
+    }
+
+    .styled-table .btn:hover {
+        background-color: #45a049;
+    }
+
+    .styled-table .delete-btn {
+        background-color: #e74c3c;
+    }
+
+    .styled-table .delete-btn:hover {
+        background-color: #c0392b;
+    }
+</style>
+
+<script>
+// Função para formatar valor em Real conforme o usuário digita
+function formatarMoeda(input) {
+    let raw = input.value;
+    // Permite apenas dígitos e um sinal de menos no início
+    let negativo = raw.startsWith('-');
+    let v = raw.replace(/[^\d]/g, "");
+    if (v.length === 0) {
+        input.value = negativo ? '-' : '';
+        return;
+    }
+    v = (parseInt(v, 10)/100).toFixed(2) + '';
+    v = v.replace('.', ',');
+    v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+    input.value = (negativo ? '-' : '') + v;
+}
+
+const balanceInput = document.getElementById('balance_cents');
+if (balanceInput) {
+    balanceInput.addEventListener('input', function(e) {
+        // Permite digitar o sinal de menos apenas no início
+        if (this.value.indexOf('-') > 0) {
+            this.value = this.value.replace(/-/g, '');
+            this.value = '-' + this.value;
+        }
+        formatarMoeda(this);
+    });
+
+    balanceInput.addEventListener('keydown', function(e) {
+        // Se o valor for '-0,00' e o usuário pressionar backspace, muda para '0,00'
+        if (this.value === '-0,00' && (e.key === 'Backspace' || e.keyCode === 8)) {
+            e.preventDefault();
+            this.value = '0,00';
+        }
+    });
+    // Ao enviar o formulário, converte para float
+    balanceInput.form.addEventListener('submit', function(e) {
+        let raw = balanceInput.value.replace(/\./g, '').replace(',', '.');
+        if (raw.startsWith('-')) {
+            raw = '-' + raw.slice(1).replace(/-/g, '');
+        } else {
+            raw = raw.replace(/-/g, '');
+        }
+        balanceInput.value = parseFloat(raw).toFixed(2);
+    });
+}
+</script>
+{% endblock content %}

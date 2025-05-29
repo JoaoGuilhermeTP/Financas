@@ -1,0 +1,509 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<main class="container">
+    <h1 class="page-title">Transações do mês de {{ month_name }}/{{ year }}</h1>
+
+    <div class="forms-above-table-wrapper">
+        <div class="form-container">
+            <!-- Month selection form -->
+            <form method="GET" action="/transacoes" class="month-selection-form vertical-form">
+                <label for="month">Selecione o mês:</label>
+                <input type="month" id="month" name="month" value="{{ request.args.get('month', 'current_month_value') }}" required>
+                <button type="submit" class="btn">Filtrar</button>
+            </form>
+            <div>
+                <button class="btn add-btn" onclick="window.location.href='/transacoes/nova_transacao'">
+                    <span class="material-icons">add</span> Adicionar Transação
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="table-container transacoes-table-container">
+        <table class="styled-table transacoes-table">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Conta</th>
+                    <th>Categoria</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr class="transaction-row {% if transaction.amount > 0 %}income-row{% else %}expense-row{% endif %} {% if transaction.status == 'Previsto' %}previsto-row{% else %}confirmado-row{% endif %}" tabindex="0" onclick="window.location.href='/transacoes/editar/{{ transaction.id }}'">
+                    <td>{{ transaction.description }}</td>
+                    <td>
+                      <span class="valor-monetario">R$ {{ transaction.amount}}</span>
+                    </td>
+                    <td>
+                        <span class="tipo-transacao {% if transaction.amount > 0 %}income-label{% else %}expense-label{% endif %}">
+                            {{ 'Receita' if transaction.amount > 0 else 'Despesa' }}
+                        </span>
+                    </td>
+                    <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if transaction.bank_account %}
+                            <span class="conta-label">Conta: {{ transaction.bank_account.account_name }}</span>
+                        {% elif transaction.credit_card %}
+                            <span class="conta-label">Cartão: {{ transaction.credit_card.name }}</span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ transaction.category.name if transaction.category else '-' }}</td>
+                    <td>{{ transaction.status }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" style="text-align:center;">Nenhuma transação encontrada para o mês selecionado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<style>
+    .month-selection-form.vertical-form {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.7rem;
+        width: 100%;
+    }
+    .month-selection-form.vertical-form label {
+        font-weight: bold;
+        margin-bottom: 0.2rem;
+        text-align: left;
+    }
+    .month-selection-form.vertical-form input[type="month"] {
+        padding: 0.6rem;
+        border-radius: 5px;
+        border: 1.5px solid #b2dfdb;
+        background: #f9fbe7;
+        font-size: 1rem;
+        margin-bottom: 0.2rem;
+        transition: border-color 0.2s;
+    }
+    .month-selection-form.vertical-form input[type="month"]:focus {
+        border-color: #4CAF50;
+        background: #fff;
+    }
+    .month-selection-form.vertical-form .btn {
+        padding: 0.7rem 0;
+        font-size: 1.05rem;
+        border-radius: 6px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        margin-top: 0.2rem;
+        width: 100%;
+        transition: background 0.2s;
+    }
+    .month-selection-form.vertical-form .btn:hover {
+        background: #388e3c;
+    }
+    .table-container {
+        margin-top: 2rem;
+    }
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 1rem;
+        text-align: left;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .styled-table thead tr {
+        background-color: #4CAF50;
+        color: white;
+        text-align: left;
+        font-weight: bold;
+    }
+    .styled-table th, .styled-table td {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #ddd;
+    }
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f9f9f9;
+    }
+    .styled-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+    .styled-table .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+        background-color: #4CAF50;
+        transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .styled-table .btn:hover {
+        background-color: #45a049;
+    }
+    .styled-table .delete-btn {
+        background-color: #e74c3c;
+    }
+    .styled-table .delete-btn:hover {
+        background-color: #c0392b;
+    }
+    .actions-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .filter-form {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .search-input, .filter-select {
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+    .add-btn-bar {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .add-btn {
+        background-color: #3498db !important;
+        color: #fff !important;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        padding: 0.85rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 6px rgba(52,152,219,0.08);
+        transition: background 0.2s, color 0.2s;
+        width: 100%;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .add-btn:hover {
+        background-color: #217dbb !important;
+        color: #fff !important;
+    }
+    .add-btn .material-icons {
+        font-size: 1.3em;
+        margin-right: 0.2em;
+    }
+    .table-container {
+        margin-top: 2rem;
+    }
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 1rem;
+        text-align: left;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .styled-table thead tr {
+        background-color: #4CAF50;
+        color: white;
+        text-align: left;
+        font-weight: bold;
+    }
+    .styled-table th, .styled-table td {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #ddd;
+    }
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f9f9f9;
+    }
+    .styled-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+    .styled-table .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+        background-color: #4CAF50;
+        transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .styled-table .btn:hover {
+        background-color: #45a049;
+    }
+    .styled-table .delete-btn {
+        background-color: #e74c3c;
+    }
+    .styled-table .delete-btn:hover {
+        background-color: #c0392b;
+    }
+    .actions-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .filter-form {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .search-input, .filter-select {
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+    .add-btn {
+        background-color: #3498db;
+    }
+    .add-btn:hover {
+        background-color: #217dbb;
+    }
+    .clear-btn {
+        background-color: #e67e22;
+    }
+    .clear-btn:hover {
+        background-color: #d35400;
+    }
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0; 
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .close {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.3rem;
+        font-weight: 500;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    .form button.btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    .material-icons {
+        font-family: 'Material Icons';
+        font-style: normal;
+        font-weight: normal;
+        font-size: 1.2em;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        direction: ltr;
+        font-feature-settings: 'liga';
+        -webkit-font-feature-settings: 'liga';
+        -webkit-font-smoothing: antialiased;
+    }
+    .transaction-row.active-row {
+        background-color: #e8f5e9 !important;
+    }
+    .form-action-bar {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+        transition: opacity 0.2s;
+    }
+    .form-action-bar.permanent-action-bar {
+        display: flex !important;
+        justify-content: center;
+        gap: 1.2rem;
+        margin: 1.5rem 0 1rem 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        padding: 0.7rem 0.5rem;
+        border: 1px solid #e0e0e0;
+        max-width: 1200px;
+        width: 100%;
+        align-items: center;
+    }
+    .form-action-bar .btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 1rem;
+        font-weight: 500;
+        min-width: 120px;
+        justify-content: center;
+        box-shadow: none;
+        border: none;
+        border-radius: 4px;
+        padding: 0.6rem 1.2rem;
+        background-color: #4CAF50;
+        color: white;
+        transition: background 0.2s, color 0.2s;
+    }
+    .form-action-bar .btn:hover {
+        background-color: #45a049;
+        color: #fff;
+    }
+    .form-action-bar .add-btn {
+        background-color: #3498db;
+    }
+    .form-action-bar .add-btn:hover {
+        background-color: #217dbb;
+    }
+    .form-action-bar .clear-btn {
+        background-color: #e67e22;
+    }
+    .form-action-bar .clear-btn:hover {
+        background-color: #d35400;
+    }
+    .form-action-bar .btn .material-icons {
+        font-size: 1.2em;
+        margin-right: 0.2em;
+    }
+    .transacoes-table-container {
+        margin-top: 2rem;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 2rem 1rem;
+    }
+    .transacoes-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 1rem;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .transacoes-table thead tr {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .transacoes-table th, .transacoes-table td {
+        padding: 1rem 0.7rem;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .transacoes-table tbody tr {
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    .transacoes-table tbody tr:hover {
+        background: #f1f8f4;
+    }
+    .income-row {
+        background: #eafaf1;
+    }
+    .expense-row {
+        background: #fff0f0;
+    }
+    .valor-monetario {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .income-row .valor-monetario, .income-label {
+        color: #219150;
+    }
+    .expense-row .valor-monetario, .expense-label {
+        color: #d32f2f;
+    }
+    .tipo-transacao {
+        font-weight: bold;
+        padding: 0.2em 0.7em;
+        border-radius: 12px;
+        font-size: 0.95em;
+        background: #e0f7e9;
+        display: inline-block;
+    }
+    .income-label {
+        background: #e0f7e9;
+        color: #219150;
+    }
+    .expense-label {
+        background: #ffeaea;
+        color: #d32f2f;
+    }
+    .conta-label {
+        font-size: 0.97em;
+        color: #555;
+        background: #f6f6f6;
+        border-radius: 6px;
+        padding: 0.2em 0.6em;
+        display: inline-block;
+    }
+    .previsto-row {
+        opacity: 0.5;
+    }
+    .confirmado-row {
+        opacity: 1;
+    }
+    @media (max-width: 900px) {
+        .transacoes-table th, .transacoes-table td {
+            padding: 0.7rem 0.3rem;
+            font-size: 0.97rem;
+        }
+        .transacoes-table-container {
+            padding: 1rem 0.2rem;
+        }
+    }
+    @media (max-width: 600px) {
+        .transacoes-table th, .transacoes-table td {
+            padding: 0.5rem 0.1rem;
+            font-size: 0.93rem;
+        }
+        .transacoes-table-container {
+            padding: 0.5rem 0.1rem;
+        }
+    }
+</style>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock content %}
