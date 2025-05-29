@@ -1,5 +1,139 @@
 {% extends "layout.html" %}
 
 {% block content %}
-INDEX
-{% endblock content %}        
+<main class="container">
+  <section class="hero-section">
+    <h1 class="hero-title">Bem-vindo ao Finanças Pessoais</h1>
+    <p class="hero-subtitle">Gerencie suas contas bancárias, acompanhe suas transações, visualize projeções e mantenha o controle total das suas finanças!</p>
+    <a href="{{ url_for('register') }}" class="btn hero-btn">Crie sua conta grátis</a>
+  </section>
+
+  <section class="features-section">
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🏦</span>
+        <h3>Controle de Contas</h3>
+        <p>Adicione e gerencie múltiplas contas bancárias em um só lugar.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <h3>Transações Detalhadas</h3>
+        <p>Registre receitas, despesas, transferências e ajustes de saldo facilmente.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📈</span>
+        <h3>Projeções & Relatórios</h3>
+        <p>Visualize gráficos de saldo futuro, distribuição de gastos e relatórios mensais.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <h2>Comece agora mesmo!</h2>
+    <p>Crie sua conta gratuitamente e tenha o controle das suas finanças na palma da mão.</p>
+    <a href="{{ url_for('register') }}" class="btn cta-btn">Quero me cadastrar</a>
+    <p class="login-link">Já tem uma conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+  </section>
+</main>
+
+<style>
+.hero-section {
+  text-align: center;
+  padding: 3rem 1rem 2rem 1rem;
+  background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+  color: white;
+  border-radius: 12px;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 2px 8px #0001;
+}
+.hero-title {
+  font-size: 2.7rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.hero-subtitle {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+}
+.hero-btn {
+  background: #fff;
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 0.9rem 2.2rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px #0002;
+  transition: background 0.2s, color 0.2s;
+}
+.hero-btn:hover {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+.features-section {
+  margin: 3rem 0 2rem 0;
+}
+.features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+.feature-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  width: 260px;
+  min-height: 220px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.feature-card:hover {
+  box-shadow: 0 6px 18px #4caf5022;
+  transform: translateY(-4px) scale(1.03);
+}
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.7rem;
+  display: block;
+}
+.cta-section {
+  text-align: center;
+  margin: 3rem 0 1rem 0;
+  padding: 2.5rem 1rem 2rem 1rem;
+  background: #f4f4f9;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+}
+.cta-section h2 {
+  margin-bottom: 1rem;
+}
+.cta-section p {
+  margin-bottom: 1.2rem;
+}
+.cta-btn {
+  background: #4CAF50;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 0.9rem 2.2rem;
+  border-radius: 6px;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 2px 8px #0002;
+  transition: background 0.2s, color 0.2s;
+  display: inline-block;
+}
+.cta-btn:hover {
+  background: #388e3c;
+  color: #fff;
+}
+.login-link {
+  margin-top: 0.7rem;
+  font-size: 1.05rem;
+}
+@media (max-width: 900px) {
+  .features-grid { flex-direction: column; align-items: center; }
+  .feature-card { width: 95vw; max-width: 350px; }
+}
+</style>
+{% endblock content %}

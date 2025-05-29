@@ -18,14 +18,14 @@ Session(app)
 db.init_app(app)
 
 
-
+# HOMEPAGE -------------------------------------------------------------------------------------------------------------------------------- OK
 
 @app.route('/')
 def home():
-    return render_template('index.html')  # Página inicial
+    return render_template('index.html')
 
 
-
+# REGISTER -------------------------------------------------------------------------------------------------------------------------------- OK
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -57,7 +57,7 @@ def register():
     return render_template('register.html')  
 
 
-
+# LOGIN -------------------------------------------------------------------------------------------------------------------------------- OK
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -78,7 +78,7 @@ def login():
     return render_template('login.html')  # Página de login
 
 
-
+# DASHBOARD -------------------------------------------------------------------------------------------------------------------------------- OK
 
 @app.route('/dashboard')
 def dashboard():
@@ -140,7 +140,7 @@ def dashboard():
         account_labels=account_labels, account_distribution=account_distribution)
 
 
-
+# TRANSACTIONS -------------------------------------------------------------------------------------------------------------------------------- OK
 
 @app.route('/transacoes')
 def transacoes():
@@ -185,13 +185,14 @@ def transacoes():
     
    
 
-
+# PAGE TO ADD NEW TRANSACTIONS -------------------------------------------------------------------------------------------------------------------------------- OK
 
 @app.route('/transacoes/nova_transacao', methods=['GET'])
 def nova_transacao():
     return render_template('transacoes/nova_transacao.html')
 
 
+# ROUTE TO ADD TRANSACTION -------------------------------------------------------------------------------------------------------------------------------- OK
 
 @app.route('/transacoes/nova/conta', methods=['GET', 'POST'])
 def nova_transacao_conta():
@@ -206,12 +207,12 @@ def nova_transacao_conta():
         category_id = request.form['category_id']
         status = request.form['status']
         if not conta_id:
-            return render_template('transacoes/nova_transacao_conta.html', contas=contas, categories=categories, error='Selecione uma conta.')
+            return render_template('transacoes/nova_transacao.html', contas=contas, categories=categories, error='Selecione uma conta.')
         if not category_id:
-            return render_template('transacoes/nova_transacao_conta.html', contas=contas, categories=categories, error='Selecione uma categoria.')
+            return render_template('transacoes/nova_transacao.html', contas=contas, categories=categories, error='Selecione uma categoria.')
         bank_account = BankAccount.query.filter_by(id=conta_id, user_id=user_id).first()
         if not bank_account:
-            return render_template('transacoes/nova_transacao_conta.html', contas=contas, categories=categories, error='Conta não encontrada.')
+            return render_template('transacoes/nova_transacao.html', contas=contas, categories=categories, error='Conta não encontrada.')
         valor_float = float(valor)
         transaction = Transaction(
             description=descricao,
@@ -227,56 +228,7 @@ def nova_transacao_conta():
         if transaction.status == 'Confirmado':
             recalculate_account_balance(bank_account)
         return redirect(url_for('transacoes'))
-    return render_template('transacoes/nova_transacao_conta.html', contas=contas, categories=categories)
-
-@app.route('/transacoes/nova/cartao', methods=['GET', 'POST'])
-def nova_transacao_cartao():
-    user_id = session.get('user_id')
-    cartoes = CreditCard.query.filter_by(user_id=user_id).all()
-    categories = Category.query.order_by(Category.name).all()
-    if request.method == 'POST':
-        descricao = request.form['descricao']
-        valor = request.form['valor']
-        data = request.form['data']
-        cartao_id = request.form['cartao_id']
-        category_id = request.form['category_id']
-        if not cartao_id:
-            return render_template('transacoes/nova_transacao_cartao.html', cartoes=cartoes, categories=categories, error='Selecione um cartão.')
-        if not category_id:
-            return render_template('transacoes/nova_transacao_cartao.html', cartoes=cartoes, categories=categories, error='Selecione uma categoria.')
-        credit_card = CreditCard.query.filter_by(id=cartao_id, user_id=user_id).first()
-        if not credit_card:
-            return render_template('transacoes/nova_transacao_cartao.html', cartoes=cartoes, categories=categories, error='Cartão não encontrado.')
-        transaction = Transaction(
-            description=descricao,
-            amount=valor,  # valor já está em Reais, não dividir por 100
-            date=datetime.strptime(data, '%Y-%m-%d'),
-            user_id=user_id,
-            credit_card_id=credit_card.id,
-            category_id=category_id
-        )
-        db.session.add(transaction)
-        db.session.commit()
-        return redirect(url_for('transacoes'))
-    return render_template('transacoes/nova_transacao_cartao.html', cartoes=cartoes, categories=categories)
-
-
-
-@app.route('/relatorios')
-def relatorios():
-    if not session['user_id']:
-        return redirect(url_for('login'))
-    return render_template('relatorios.html')  # Página de relatórios
-
-
-
-
-@app.route('/configuracoes')
-def configuracoes():
-    if not session['user_id']:
-        return redirect(url_for('login'))
-    banks = Bank.query.all() 
-    return render_template('configuracoes/configuracoes.html', banks=banks)  # Página de configurações
+    return render_template('transacoes/nova_transacao.html', contas=contas, categories=categories)
 
 
 
@@ -313,7 +265,7 @@ def contato():
 
 
 
-@app.route('/configuracoes/contas', methods=['GET', 'POST'])
+@app.route('/contas', methods=['GET', 'POST'])
 def configuracoes_contas():
     if not session['user_id']:
         return redirect(url_for('login'))
@@ -428,126 +380,12 @@ def excluir_conta(account_id):
 
 
 
-@app.route('/configuracoes/cartoes', methods=['GET', 'POST'])
-def configuracoes_cartoes():
-    if not session['user_id']:
-        return redirect(url_for('login'))
-    banks = Bank.query.all() 
-    credit_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
-    return render_template('configuracoes/cartoes/configurar_cartoes.html', banks=banks, credit_cards=credit_cards)
-
-
-
-
-@app.route('/configuracoes/cartoes/adicionar', methods=['GET', 'POST'])
-def adicionar_cartao():
-    if not session['user_id']:
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        name = request.form['name']
-        bank_id = request.form['bank_id']
-        balance = request.form['balance']
-        limit = request.form['limit']
-        closing_date = request.form['closing_date']
-        due_date = request.form['due_date']
-
-        new_credit_card = CreditCard(
-            name=name,
-            bank_id=bank_id,
-            balance=balance,
-            limit=limit,
-            closing_date=closing_date,
-            due_date=due_date,
-            user_id=session['user_id']
-        )
-        db.session.add(new_credit_card)
-        db.session.commit()
-    return redirect(url_for('configuracoes_cartoes'))
-
-
-
-
-@app.route('/configuracoes/cartoes/editar/<int:credit_card_id>', methods=['GET', 'POST'])
-def editar_cartao(credit_card_id):
-    if not session['user_id']:
-        return redirect(url_for('login'))
-    # Busca o cartão pelo ID e usuário
-    credit_card = CreditCard.query.filter_by(id=credit_card_id, user_id=session['user_id']).first()
-    if not credit_card:
-        return redirect(url_for('configuracoes_cartoes'))
-    if request.method == 'POST':
-        credit_card.name = request.form['credit_card_name']
-        credit_card.bank_id = request.form['bank_id']
-        credit_card.balance = request.form['balance_cents']
-        credit_card.limit = request.form['limit']
-        db.session.commit()
-        return redirect(url_for('configuracoes_cartoes'))
-    banks = Bank.query.all()
-    return render_template('configuracoes/cartoes/editar_cartao.html', credit_card=credit_card, banks=banks)
-
-
-
-
-@app.route('/configuracoes/cartoes/excluir/<int:credit_card_id>', methods=['GET', 'POST'])
-def excluir_cartao(credit_card_id):
-    if not session['user_id']:
-        return redirect(url_for('login'))
-    credit_card = CreditCard.query.filter_by(id=credit_card_id, user_id=session['user_id']).first()
-    if not credit_card:
-        return redirect(url_for('configuracoes_cartoes'))
-    db.session.delete(credit_card)
-    db.session.commit()
-    return redirect(url_for('configuracoes_cartoes'))
-
-
-
-
-@app.route('/configuracoes/categorias', methods=['GET', 'POST'])
-def configuracoes_categorias():
-    if not session.get('user_id'):
-        return redirect(url_for('login'))
-    categories = Category.query.order_by(Category.name).all()
-    return render_template('configuracoes/categorias/configurar_categorias.html', categories=categories)
-
-@app.route('/configuracoes/categorias/adicionar', methods=['POST'])
-def adicionar_categoria():
-    if not session.get('user_id'):
-        return redirect(url_for('login'))
-    name = request.form['category_name']
-    if name and not Category.query.filter_by(name=name).first():
-        new_category = Category(name=name)
-        db.session.add(new_category)
-        db.session.commit()
-    return redirect(url_for('configuracoes_categorias'))
-
-@app.route('/configuracoes/categorias/editar/<int:category_id>', methods=['GET', 'POST'])
-def editar_categoria(category_id):
-    if not session.get('user_id'):
-        return redirect(url_for('login'))
-    category = Category.query.get_or_404(category_id)
-    if request.method == 'POST':
-        category.name = request.form['category_name']
-        db.session.commit()
-        return redirect(url_for('configuracoes_categorias'))
-    return render_template('configuracoes/categorias/editar_categoria.html', category=category)
-
-@app.route('/configuracoes/categorias/excluir/<int:category_id>', methods=['POST'])
-def excluir_categoria(category_id):
-    if not session.get('user_id'):
-        return redirect(url_for('login'))
-    category = Category.query.get_or_404(category_id)
-    db.session.delete(category)
-    db.session.commit()
-    return redirect(url_for('configuracoes_categorias'))
-
-
 @app.route('/transacoes/editar/<int:transaction_id>', methods=['GET', 'POST'])
 def editar_transacao(transaction_id):
     if not session.get('user_id'):
         return redirect(url_for('login'))
     transaction = Transaction.query.filter_by(id=transaction_id, user_id=session['user_id']).first_or_404()
     contas = BankAccount.query.filter_by(user_id=session['user_id']).all()
-    cartoes = CreditCard.query.filter_by(user_id=session['user_id']).all()
     categories = Category.query.order_by(Category.name).all()
     if request.method == 'POST':
         if 'delete' in request.form:
@@ -557,31 +395,25 @@ def editar_transacao(transaction_id):
             # Atualiza o saldo da conta após deletar a transação
             if bank_account_id:
                 bank_account = BankAccount.query.get(bank_account_id)
-                if bank_account:
-                    bank_account.balance = sum([float(t.amount) for t in bank_account.transactions]) if bank_account.transactions else 0.0
-                    db.session.commit()
+                recalculate_account_balance(bank_account)
             return redirect(url_for('transacoes'))
         # Update transaction
-        old_status = transaction.status
         transaction.description = request.form['descricao']
         transaction.amount = request.form['valor']
         transaction.date = datetime.strptime(request.form['data'], '%Y-%m-%d')
         transaction.category_id = request.form['category_id']
-        new_status = request.form.get('status', 'Confirmado')
-        transaction.status = new_status
-        conta_id = request.form.get('conta_id')
-        cartao_id = request.form.get('cartao_id')
-        transaction.bank_account_id = conta_id if conta_id else None
-        transaction.credit_card_id = cartao_id if cartao_id else None
+        transaction.status = request.form['status']
+        transaction.bank_account_id = request.form['conta_id']
         db.session.commit()
-        # Só recalcula o saldo se o status mudou para Confirmado
-        if old_status != 'Confirmado' and new_status == 'Confirmado' and transaction.bank_account_id:
-            bank_account = BankAccount.query.get(transaction.bank_account_id)
-            if bank_account:
-                bank_account.balance = sum([float(t.amount) for t in bank_account.transactions]) if bank_account.transactions else 0.0
-                db.session.commit()
+        bank_account = BankAccount.query.get(transaction.bank_account_id)
+        if bank_account:
+            recalculate_account_balance(bank_account)
+            db.session.commit()
         return redirect(url_for('transacoes'))
-    return render_template('transacoes/editar_transacao.html', transaction=transaction, contas=contas, cartoes=cartoes, categories=categories)
+    return render_template('transacoes/editar_transacao.html', transaction=transaction, contas=contas, categories=categories)
+
+
+
 
 def recalculate_account_balance(account):
     """

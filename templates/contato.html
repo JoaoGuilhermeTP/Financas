@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block content %}
+<main class="container">
+  <section class="contact-section">
+    <h1 class="contact-title">Contato</h1>
+    <p class="contact-desc">Fique à vontade para entrar em contato para dúvidas, sugestões ou parcerias!</p>
+    <div class="contact-cards">
+      <div class="contact-card">
+        <span class="contact-icon">✉️</span>
+        <h3>E-mail</h3>
+        <a href="mailto:joao.guilherme@gmail.com">joao.guilherme@gmail.com</a>
+      </div>
+      <div class="contact-card">
+        <span class="contact-icon">💼</span>
+        <h3>LinkedIn</h3>
+        <a href="https://www.linkedin.com/in/joaoguilherme1/" target="_blank">/joaoguilherme1</a>
+      </div>
+      <div class="contact-card">
+        <span class="contact-icon">🐙</span>
+        <h3>GitHub</h3>
+        <a href="https://github.com/JoaoGuilhermeTP" target="_blank">JoaoGuilhermeTP</a>
+      </div>
+    </div>
+  </section>
+</main>
+<style>
+.contact-section {
+  max-width: 700px;
+  margin: 2.5rem auto;
+  background: #fff;
+  padding: 2.5rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+  text-align: center;
+}
+.contact-title {
+  font-size: 2.2rem;
+  color: #4CAF50;
+  margin-bottom: 1.2rem;
+}
+.contact-desc {
+  font-size: 1.15rem;
+  margin-bottom: 2.2rem;
+  color: #444;
+}
+.contact-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.contact-card {
+  background: #e8f5e9;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #4caf5022;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  min-width: 180px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.contact-card:hover {
+  box-shadow: 0 6px 18px #4caf5040;
+  transform: translateY(-4px) scale(1.03);
+}
+.contact-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.contact-card a {
+  color: #388e3c;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.08rem;
+  word-break: break-all;
+}
+.contact-card a:hover {
+  text-decoration: underline;
+}
+</style>
+{% endblock content %}

@@ -35,16 +35,6 @@
                 {% endfor %}
             </select>
         </div>
-        {% elif transaction.credit_card_id %}
-        <div class="form-group">
-            <label for="cartao_id">Cartão de Crédito</label>
-            <select id="cartao_id" name="cartao_id">
-                <option value="">Nenhum</option>
-                {% for cartao in cartoes %}
-                    <option value="{{ cartao.id }}" {% if transaction.credit_card_id == cartao.id %}selected{% endif %}>{{ cartao.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
         {% endif %}
         <div class="form-group">
             <label for="status">Status</label>
