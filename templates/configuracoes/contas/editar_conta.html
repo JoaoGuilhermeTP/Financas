@@ -26,6 +26,7 @@
     </div>
 </main>
 <script>
+
 function formatarMoeda(input) {
     let raw = input.value;
     let negativo = raw.startsWith('-');
@@ -39,8 +40,11 @@ function formatarMoeda(input) {
     v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
     input.value = (negativo ? '-' : '') + v;
 }
+
 const balanceInput = document.getElementById('balance');
 if (balanceInput) {
+    // Formata o valor ao carregar a página
+    formatarMoeda(balanceInput);
     balanceInput.addEventListener('input', function(e) {
         if (this.value.indexOf('-') > 0) {
             this.value = this.value.replace(/-/g, '');
@@ -64,5 +68,6 @@ if (balanceInput) {
         balanceInput.value = parseFloat(raw).toFixed(2);
     });
 }
+
 </script>
 {% endblock content %}

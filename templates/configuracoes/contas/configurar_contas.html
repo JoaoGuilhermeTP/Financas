@@ -47,7 +47,7 @@
                     <td>{{ account.balance }}</td>
                     <td>
                         <a href="/configuracoes/contas/editar/{{ account.id }}" class="btn edit-btn">Editar</a>
-                        <a href="/configuracoes/contas/excluir/{{ account.id }}" class="btn delete-btn">Excluir</a>
+                        <a href="/configuracoes/contas/excluir/{{ account.id }}" class="btn delete-btn" onclick="return confirm('Excluir uma conta bancária também excluirá todas as transações associadas a ela. Você tem certeza que deseja excluir esta conta?');">Excluir</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -10,7 +10,6 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
 
     bank_accounts = db.relationship('BankAccount', backref='user', lazy=True)
-    credit_cards = db.relationship('CreditCard', backref='user', lazy=True)
     transactions = db.relationship('Transaction', backref='user', lazy=True)
 
     def __repr__(self):
@@ -22,7 +21,6 @@ class Bank(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
 
     bank_accounts = db.relationship('BankAccount', backref='bank', lazy=True)
-    credit_cards = db.relationship('CreditCard', backref='bank', lazy=True)
 
     def __repr__(self):
         return f'<Bank {self.name}>'
@@ -43,23 +41,6 @@ class BankAccount(db.Model):
         return f'<BankAccount {self.account_name}>'
 
 
-class CreditCard(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    limit = db.Column(db.Numeric(10, 2), nullable=False)
-    balance = db.Column(db.Numeric(10, 2), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    closing_date = db.Column(db.Integer, nullable=False)  # Day of the month when the statement closes
-    due_date = db.Column(db.Integer, nullable=False)  # Day of the month when payment is due
-
-    # Relationships
-    transactions = db.relationship('Transaction', backref='credit_card', lazy=True)
-
-    def __repr__(self):
-        return f'<CreditCard {self.name}>'
-
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -68,7 +49,6 @@ class Transaction(db.Model):
     date = db.Column(db.DateTime, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     bank_account_id = db.Column(db.Integer, db.ForeignKey('bank_account.id'), nullable=True)
-    credit_card_id = db.Column(db.Integer, db.ForeignKey('credit_card.id'), nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     status = db.Column(db.String(20), nullable=False, default='Confirmado')

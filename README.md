@@ -7,7 +7,7 @@ Financas é uma aplicação web de controle financeiro pessoal desenvolvida com 
 - Autenticação de usuários (cadastro, login, logout)
 - Dashboard com visão geral financeira e gráficos
 - Adição, edição e exclusão de transações
-- Gerenciamento de contas bancárias e categorias
+- Gerenciamento de contas bancárias
 - Transações agendadas e confirmadas
 - Interface responsiva com CSS customizado
 - Dados armazenados em banco SQLite
@@ -61,8 +61,7 @@ Acesse em [http://127.0.0.1:5000](http://127.0.0.1:5000).
 - `models.py` - Modelos do banco de dados (veja abaixo)
 - `extensions.py` - Configuração das extensões Flask
 - `templates/` - Templates HTML
-- `static/` - Arquivos estáticos e CSS
-- `seeds/` - Scripts para popular dados iniciais
+- `static/` - Arquivos estáticos e CSS centralizado
 - `finances.db` - Banco de dados SQLite
 
 ## Modelos do Banco de Dados
@@ -72,26 +71,21 @@ Os principais modelos estão definidos em `models.py` usando SQLAlchemy:
 ### User (Usuário)
 - `id`: Chave primária
 - `username`, `email`, `password`: Credenciais do usuário
-- Relacionamentos: `bank_accounts`, `credit_cards`, `transactions`
+- Relacionamentos: `bank_accounts`, `transactions`
 
 ### Bank (Banco)
-- `id`, `name`: Informações do banco
-- Relacionamentos: `bank_accounts`, `credit_cards`
+- `id`, `name`: Informações do banco (lista deduplicada e ordenada programaticamente em `populate_banks.py`)
+- Relacionamentos: `bank_accounts`
 
 ### BankAccount (Conta Bancária)
 - `id`, `account_name`, `balance`, `created_at`
 - Chaves estrangeiras: `user_id`, `bank_id`
 - Relacionamento: `transactions`
 
-### CreditCard (Cartão de Crédito)
-- `id`, `name`, `limit`, `balance`, `created_at`, `closing_date`, `due_date`
-- Chaves estrangeiras: `user_id`, `bank_id`
-- Relacionamento: `transactions`
-
 ### Transaction (Transação)
 - `id`, `description`, `amount`, `date`, `created_at`, `status`
-- Chaves estrangeiras: `user_id`, `bank_account_id`, `credit_card_id`, `category_id`
-- Pertence a: Usuário, Conta Bancária ou Cartão de Crédito, Categoria
+- Chaves estrangeiras: `user_id`, `bank_account_id`, `category_id`
+- Pertence a: Usuário, Conta Bancária, Categoria
 
 ### Category (Categoria)
 - `id`, `name`: Nome da categoria
@@ -103,24 +97,22 @@ Os principais modelos estão definidos em `models.py` usando SQLAlchemy:
 User (id, username, email, password)
 Bank (id, name)
 BankAccount (id, account_name, balance, user_id, bank_id, created_at)
-CreditCard (id, name, limit, balance, user_id, bank_id, created_at, closing_date, due_date)
-Transaction (id, description, amount, date, user_id, bank_account_id, credit_card_id, category_id, created_at, status)
+Transaction (id, description, amount, date, user_id, bank_account_id, category_id, created_at, status)
 Category (id, name)
 ```
 
 ## Principais Classes e Suas Funções
 
 - **User**: Representa o usuário da aplicação. Responsável pela autenticação e vinculação com contas e transações.
-- **Bank**: Representa uma instituição financeira. Utilizado para agrupar contas e cartões.
-- **BankAccount**: Conta bancária do usuário. Controla saldo e transações.
-- **CreditCard**: Cartão de crédito do usuário. Controla limite, saldo e transações relacionadas.
-- **Transaction**: Movimento financeiro (receita ou despesa). Vinculado a contas, cartões e categorias.
+- **Bank**: Representa uma instituição financeira. Utilizado para agrupar contas. Lista de bancos é deduplicada e ordenada automaticamente.
+- **BankAccount**: Conta bancária do usuário. Controla saldo e transações. Ao excluir uma conta, todas as transações associadas também são removidas.
+- **Transaction**: Movimento financeiro (receita ou despesa). O sinal do valor é tratado no backend conforme o tipo de transação. Vinculado a contas e categorias.
 - **Category**: Classifica as transações (ex: Alimentação, Salário, Aluguel).
 
 ## Personalização
 
-- Edite `static/styles.css` para customizar o visual.
-- Modifique os templates em `templates/` para alterar a interface.
+- Edite `static/styles.css` para customizar o visual. Todo CSS customizado está centralizado neste arquivo.
+- Modifique os templates em `templates/` para alterar a interface. Não há mais CSS inline ou em `<style>` nos templates.
 
 ## Licença
 
