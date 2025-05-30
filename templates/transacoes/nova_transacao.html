@@ -1,6 +1,33 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<style>
+/* Estilização moderna para os dropdowns do formulário de transação */
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #bdbdbd;
+    border-radius: 6px;
+    background: #f8f8f8;
+    color: #333;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+.form-group select:focus {
+    border-color: #1976d2;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 2px #1976d230;
+}
+.form-group select option {
+    background: #fff;
+    color: #333;
+}
+</style>
 <div class="form-container">
     <h2>Adicionar Transação à Conta Corrente</h2>
     {% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
@@ -64,15 +91,10 @@ const valorInput = document.getElementById('valor');
 const tipoInput = document.getElementById('tipo');
 if (valorInput && tipoInput) {
     valorInput.addEventListener('input', function() { formatarMoeda(this); });
+    // Remove a lógica de sinal do valor, apenas formata a moeda
     valorInput.form.addEventListener('submit', function(e) {
         let raw = valorInput.value.replace(/\./g, '').replace(',', '.');
         let val = parseFloat(raw).toFixed(2);
-        if (tipoInput.value === 'despesa' && val > 0) {
-            val = '-' + val;
-        }
-        if (tipoInput.value === 'receita' && val < 0) {
-            val = Math.abs(val).toFixed(2);
-        }
         valorInput.value = val;
     });
 }
